@@ -1,0 +1,49 @@
+
+  .containerwgt {
+    position: relative;
+    margin-top: 2%;
+    margin-left: 2%;
+    margin-right: 2%;
+  }
+
+  .card-img {
+    /*display: flex;*/
+    /*justify-content: center;*/
+    /*align-items: right;*/
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card {
+    page-break-inside: avoid;
+    line-height: normal;
+    font-size: 12px
+  }
+
+.sectionHead{
+  text-align: center;
+  position: relative;
+  vertical-align: center;
+}
+
+  @media print {
+
+    div {
+      orphans: 10;
+      widows: 10;
+    }
+
+    @page {
+      /*anytime you mess with the size, it srews everything up.*/
+      /*size: A4; /* DIN A4 standard, Europe */*/
+      /*margin: 10mm 0 10mm 0;*/
+
+    }
+
+  .pagebreak {
+      clear: both;
+      page-break-after: always;
+  }
+  div {font-family:calibri, times, serif;}
+}

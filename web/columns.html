@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Twitter Monitoring</title>
+	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script src="https://d3js.org/d3.v4.js"></script>
+	<script src="https://d3js.org/d3-time.v2.min.js"></script>
+</head>
+
+<body>
+
+<!-- Opening DIV for container -->
+<div class="containerwgt">
+
+<h1> OWS Twitter Monitoring Report </h1>
+<p id="current"></p></br>
+
+<!-- <p id="intro"></p></br> -->
+
+  <div class="row">
+    <div class="col-sm">
+			<h2> Today </h2>
+			<p id="tchart"></p></br>
+    </div>
+    <!-- <div class="col-sm">
+			<h2> Past Week </h2>
+			<p id="wchart"></p></br>
+    </div>
+    <div class="col-sm">
+			<h2> Past Month </h2>
+			<p id="mchart"></p></br>
+			</div>
+		</div>
+<hr>
+		<h3> Top Hashtags </h3>
+			<div class="row">
+		    <div class="col-sm">
+					<p id="thashtags"></p>
+		    </div>
+		    <div class="col-sm">
+					<p id="whashtags"></p>
+		    </div>
+		    <div class="col-sm">
+					<p id="mhashtags"></p>
+					</div>
+				</div>
+<hr>
+
+				<h3> Most Active User </h3>
+					<div class="row">
+						<div class="col-sm">
+							<p id="tactiveUser"></p>
+						</div>
+						<div class="col-sm">
+							<p id="wactiveUser"></p>
+						</div>
+						<div class="col-sm">
+							<p id="mactiveUser"></p>
+							</div>
+						</div>
+<hr>
+					<h3> Most Mentioned Users </h3>
+					<div class="row">
+						<div class="col-sm">
+							<p id="tmentions"></p>
+						</div>
+						<div class="col-sm">
+							<p id="wmentions"></p>
+						</div>
+						<div class="col-sm">
+							<p id="mmentions"></p>
+							</div>
+						</div>
+<hr>
+<div class="pagebreak"> </div>
+				<h3> Most Shared Links </h3>
+				<div class="row">
+					<div class="col-sm">
+						<p id="tlinks"></p>
+					</div>
+					<div class="col-sm">
+						<p id="wlinks"></p>
+					</div>
+					<div class="col-sm">
+						<p id="mlinks"></p>
+						</div>
+					</div>
+<hr>
+<div class="pagebreak"> </div>
+					<h3> Top Tweets </h3>
+					<div class="row">
+						<div class="col-sm">
+							<p id="ttop"></p>
+						</div>
+						<div class="col-sm">
+							<p id="wtop"></p>
+						</div>
+						<div class="col-sm">
+							<p id="mtop"></p>
+							</div>
+						</div>
+<hr>
+<div class="pagebreak"> </div>
+				<h3> Top Serial Tweets </h3>
+				<div class="row">
+					<div class="col-sm">
+						<p id="tserial"></p>
+					</div>
+					<div class="col-sm">
+						<p id="wserial"></p>
+					</div>
+					<div class="col-sm">
+						<p id="mserial"></p>
+						</div>
+					</div>
+
+
+
+</div> -->
+</br>
+
+<!-- closing div for container -->
+</div>
+
+<script>
+//define replaceAt
+String.prototype.replaceAt=function(index, replacement) {
+    return this.substr(0, index) + replacement+ this.substr(index + replacement.length);
+}
+
+//define date of run
+var topDate = new Date();
+document.getElementById("current").innerHTML = "As of: " + topDate.toString();
+
+// load the data
+d3.queue()
+  .defer(d3.json, './dailyClockCounts.json') //1
+  // .defer(d3.json, './todayHashtagCounts.json') //2
+  // .defer(d3.json, './todaySerial.json') //3
+  // .defer(d3.json, './todayURLsCounts.json') //4
+  // .defer(d3.json, './todayUserCounts.json') //5
+  // .defer(d3.json, './todayUserMentionsCounts.json') //6
+  // .defer(d3.json, './weekHashtagCounts.json')//7
+	// .defer(d3.json, './weeklyClockCounts.json')//8
+	// .defer(d3.json, './weekSerial.json')//9
+	// .defer(d3.json, './weekURLsCounts.json')//10
+	// .defer(d3.json, './weekUserCounts.json')//11
+	// .defer(d3.json, './weekUserMentionsCounts.json')//12
+	// .defer(d3.json, './monthHashtagCounts.json')//13
+	// .defer(d3.json, './monthlyClockCounts.json')//14
+	// .defer(d3.json, './monthSerial.json')//15
+	// .defer(d3.json, './monthTop.json')//16
+	// .defer(d3.json, './monthURLsCounts.json')//17
+	// .defer(d3.json, './monthUserCounts.json')//18
+	// .defer(d3.json, './monthUserMentionsCounts.json')//19
+	// .defer(d3.json, './todayTop.json')//20
+	// .defer(d3.json, './weekTop.json')//21
+  .await(analyze);
+
+  function analyze(error,dailyClock) {
+    if(error) { console.log(error); }
+
+// 		var todaysSerial = d3.nest()
+// 		  .key(function(d) { return d["cleanDay"];})
+// 		  .entries(todaySerial)
+// 		todaysSerial.sort(function(a, b){return b.values.length - a.values.length})
+//
+// 		var weeklySerial = d3.nest()
+// 		  .key(function(d) { return d["cleanDay"];})
+// 		  .entries(weekSerial)
+// 		weeklySerial.sort(function(a, b){return b.values.length - a.values.length})
+//
+// 		var monthSerial = d3.nest()
+// 			.key(function(d) { return d["cleanDay"];})
+// 			.entries(monthSerial)
+// 		monthSerial.sort(function(a, b){return b.values.length - a.values.length})
+//
+// function hashtagCreate(data, index) {
+//
+// if (data.todayHashtag != null){
+// 	var selector = "#thashtags"
+// 	var dataNow = data.todayHashtag
+// }else if (data.weekHashtag != null){
+// 	var selector = "#whashtags"
+// 	var dataNow = data.weekHashtag
+// } else {
+// 	var selector = "#mhashtags"
+// 	var dataNow = data.monthHashtag
+// }
+//
+// if(dataNow.charAt(0)=="#"){
+// 	dataNow = dataNow.substring(1)
+// } else {
+// 	dataNow = dataNow
+// }
+//
+// d3.select(selector)
+// 	.append("div")
+//     .html("<a href=" + "'https://twitter.com/hashtag/"+ dataNow +"?src=hashtag_click' target=_blank"+" > #"+ dataNow +"</a> " + "(n= "+ data.count+ ")")
+// };
+//
+// function linkCounts(data, index) {
+//
+// 	if (data.time == 'day'){
+// 		var selector = "#tlinks"
+// 	} else  if (data.time == "week"){
+// 		var selector = "#wlinks"
+// 	} else {
+// 		var selector = "#mlinks"
+// 	}
+//
+// 	// if (data.todayURLs != null){
+// 	// 	var selector = "#tlinks"
+// 	// 	var dataNow = data.todayURLs
+// 	// }else if (data.weekURLs != null){
+// 	// 	var selector = "#wlinks"
+// 	// 	var dataNow = data.weekURLs
+// 	// } else {
+// 	// 	var selector = "#mlinks"
+// 	// 	var dataNow = data.monthURLs
+// 	// 	console.log(data)
+// 	// }
+//
+//
+// // d3.select(selector)
+// //   .append("div")
+// //       .html("<a href='" + dataNow + "' target='_blank'> "+ dataNow +"</a> " + "(n= "+ data.count+ ")")
+// //
+// // };
+// var linksD3 = d3.select(selector)
+// 	.data([data])
+// 	.append('div')
+// 			.attr("class","card mb-3")
+// 			.style('max-width','90%');
+//
+// 			linksD3.append("img")
+// 			.attr("class","card-img-top")
+// 			.attr("src", data.image);
+//
+// 			linksD3.append("div")
+// 			.attr("class", "card-body")
+// 			.attr("class","card-title")
+// 			.style("font-weight","bold")
+// 				.text(data.title + " (n= " + data.count + ")");
+//
+// 			linksD3.append("p")
+// 						.attr("class","card-text")
+// 						.text(data.description)
+// 					.append("p")
+// 						.attr("class","text-muted")
+// 								.style("font-weight","bold")
+// 								.append("a")
+// 									.style('align',"right")
+// 									.attr("href", data.url)
+// 									.attr("target", "_blank")
+// 									 .text("Link");
+// 	// });
+// };
+//
+//
+// function mentions(data, index) {
+//
+// if (data.todayUserMentions != null){
+// 	var selector = "#tmentions"
+// 	var dataNow = data.todayUserMentions
+// }else if (data.weekUserMentions != null){
+// 	var selector = "#wmentions"
+// 	var dataNow = data.weekUserMentions
+// } else {
+// 	var selector = "#mmentions"
+// 	var dataNow = data.monthUserMentions
+// }
+//
+// d3.select(selector)
+//   .append("div")
+//       .html("<a href='https://twitter.com/" + dataNow + "' target='_blank'>"+ dataNow+"</a> " + "(n= "+ data.count+ ")")
+// };
+//
+//
+// function activeUser(data, index) {
+//
+// 	if (data.todayUser != null){
+// 		var selector = "#tactiveUser"
+// 		var dataNow = data.todayUser
+// 	}else if (data.weekUser != null){
+// 		var selector = "#wactiveUser"
+// 		var dataNow = data.weekUser
+// 	} else {
+// 		var selector = "#mactiveUser"
+// 		var dataNow = data.monthUser
+// 	}
+//
+//
+// d3.select(selector)
+//   .append("div")
+//       .html("<a href='https://twitter.com/" + dataNow+ "' target='_blank'>  @"+ dataNow +"</a> " + "(n= "+ data.count+ ")")
+// };
+//
+// function processValues(valueName,data){
+//
+// var outputName=[]
+//
+// for (i in data.values){
+//   outputName.push(data.values[i][valueName])
+// }
+//
+// outputName = outputName.filter(function(item, pos){
+//   return outputName.indexOf(item)== pos;
+// });
+//
+// return outputName
+//
+// }
+// //
+// function twitterSerial(data,index){
+//
+// 	if (data.time == 'day'){
+// 		var selector = "#tserial"
+// 		var dataNow = data.key
+// 	} else  if (data.time == "week"){
+// 		var selector = "#wserial"
+// 		var dataNow = data.key
+// 	} else {
+// 		var selector = "#mserial"
+// 		var dataNow = data.key
+// 	}
+//
+// var users = processValues('username',data)
+// var media = processValues("photo",data)
+// // var hashtags = processValues('hashtags',data)
+// var count = Object.keys(data.values).length
+//
+// var usersFull = []
+// for (i in users){
+//   usersFull.push("<a href='http://www.twitter.com/" + users[i] + "' target='_blank'>  @"+ users[i] +"</a>")
+// }
+//
+// var serialD3 = d3.select(selector)
+// 	.data([data])
+// 	.append('div')
+// 			.attr("class","card mb-3")
+// 			.style('max-width','90%');
+//
+// 			serialD3.append("img")
+// 			.attr("class","card-img-top")
+// 			.attr("src", function(d){return d.values[0].photo});
+//
+// 			serialD3.append("div")
+// 			.attr("class", "card-body")
+// 			.attr("class","card-title")
+// 			.style("font-weight","bold")
+// 				.text("Count: " + count)
+// 			.append("p")
+// 				.text(function(d){ return "Total Engagements: " +d.values[0].enga});
+//
+// 			serialD3.append("p")
+// 						.attr("class","card-text")
+// 						.text(data.key)
+// 					.append("p")
+// 						.attr("class","text-muted")
+// 								.style("font-weight","bold")
+// 								.append("a")
+// 							    .style('align',"right")
+// 	                .attr("href",function(d){return d.values[0].url})
+//                  .attr("target", "_blank")
+//                  .text("Link");
+//
+// };
+// //
+// function topTweets(data,index){
+//
+// 	if (data.time == 'day'){
+// 		var selector = "#ttop"
+// 	} else  if (data.time == "week"){
+// 		var selector = "#wtop"
+// 	} else {
+// 		var selector = "#mtop"
+// 	}
+//
+// // if (data.media != null){
+// // 	if(data.media[0].thumbnailUrl != undefined){
+// // 		mediaUse = data.media[0].thumbnailUrl
+// // 	} else {
+// // 		mediaUse = data.media[0][0]
+// // 	}
+// // } else {
+// // 	mediaUse=""
+// // }
+//
+//
+// 	var topD3 = d3.select(selector)
+// 		.data([data])
+// 		.append('div')
+// 				.attr("class","card mb-3")
+// 				.style('max-width','90%');
+//
+// 				topD3.append("img")
+// 				.attr("class","card-img-top")
+// 				.attr("src", data.photo);
+// // //YOU WERE ADDING IN HEADING FOR LIKES/Counts, etc.
+// 				topD3.append("div")
+// 				.attr("class","card-title")
+// 				.html("<a href='https://twitter.com/" + data.username + "' target='_blank'>  @"+ data.username  +"</a>")
+// 				.append("p")
+// 					.text("Likes: " + data.likeCount + " Retweets: " + data.retweetCount + " Replies: " + data.replyCount );
+//
+// 				topD3.append("p")
+// 							.attr("class","card-text")
+// 							.text(data.content)
+// 						.append("p")
+// 						.html("</br>")
+// 						.append("p")
+// 							.attr("class","text-muted")
+// 									.style("font-weight","bold")
+// 									.append("a")
+// 										.style('align',"right")
+// 										.attr("href", data.url)
+// 										.attr("target", "_blank")
+// 										 .text("Link");
+//
+// };
+
+
+
+function chartCreate(data, index) {
+
+	var svg = d3.select("svg");
+
+	if (data[0].time == 'day'){
+		var selector = "#tchart"
+		var textHere = "Today's Activity (By Hour)";
+	} else if (data[0].time == 'week') {
+		var selector = "#wchart"
+		var textHere = "Last Seven Day's Activity (By Hour)";
+	} else {
+		var selector = "#mchart"
+		var textHere = "Last 30 Day's Activity (By Hour)";
+	}
+
+	var svg = d3.select("svg");
+
+	    // Setup the tool tip.  Note that this is just one example, and that many styling options are available.
+	    // See original documentation for more details on styling: http://labratrevenge.com/d3-tip/
+	// set the dimensions and margins of the graph
+	var margin = {top: 10, right: 25, bottom: 25, left: 25},
+		  width = 600 - margin.left - margin.right,
+	    height = 400 - margin.top - margin.bottom;
+
+	// set the ranges. For Multi-line, you add a z variable
+	var x = d3.scaleTime().range([0, width]);
+	var y = d3.scaleLinear().range([height, 0]);
+	var z = d3.scaleOrdinal();
+
+	// define the line. Note: You set this to "date" and "value" to try and make the code as interchangable as possible.
+	var valueLine = d3.line()
+	// can add something like .curve(d3.curveBasis) if you want to smooth the line
+	    .curve(d3.curveBasis)
+	    .x(function(d) { return x(d.date); })
+	    .y(function(d) { return y(+d.count);});
+
+// console.log(d3.time.day(new Date()))
+console.log(greatest)
+y.domain([0, greatest]);
+
+			if (data[0].time == 'month'){
+	    x.domain([new Date, new Date]).nice(d3.timeDay)
+
+		} else {	// Scale the range of the data
+		  x.domain(d3.extent(data, function(d) { return d.date;}))
+
+		}
+		  // y.domain([d3.min(data,function(d) {return +d.count}), d3.max(data, function(d) { return +d.count;})]);
+
+
+			var chart = d3.select(selector).append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			    .append("g")
+			    .attr("transform",
+			          "translate(" + margin.left + "," + margin.top + ")");
+
+			// Add data to the valueLine path.
+			  // chart.selectAll(".line")
+			  //     .data(data)
+			  //     .enter()
+				chart.append("path")
+							.data([data])
+				      .attr("class", "line")
+							.attr("fill", "none")
+							.attr("d",valueLine)
+							// .attr("d", function(d){
+							// 	return valueLine(+d.count)})
+							// .call(log,"path")
+							.style("stroke", "#002F6C")
+							.style("stroke-width", "2")
+								// Add data to the X Axis
+
+
+							function log(sel,msg) {
+								  console.log(msg,sel);
+								}
+
+if (data[0].time == 'month'){
+				  chart.append("g")
+				      .attr("transform", "translate(0," + height + ")")
+				      .call(d3.axisBottom(x)
+							.ticks(d3.timeDay.every(7)));
+						} else{
+							chart.append("g")
+									.attr("transform", "translate(0," + height + ")")
+									.call(d3.axisBottom(x));
+						}
+
+				  // Add data to the Y Axis
+				  chart.append("g")
+				      .attr("class", "axis axis--y")
+				      .call(d3.axisLeft(y))
+				    .append("text")
+				      .attr("transform", "rotate(-90)")
+				      .attr("y", -45)
+				      .attr("dy", "0.71em")
+				      .attr("fill", "#000")
+				      .text(textHere);
+
+}
+
+// reduce to needed number
+// var todayHT = todayHT.slice(0,10)
+// var weekHT = weekHT.slice(0,10)
+// var monthHT = monthHT.slice(0,10)
+// var todayURLs = todayURLs.slice(0,3)
+// var weekURLs = weekURLs.slice(0,5)
+// var monthURLs = monthURLs.slice(0,5)
+// var todayMentions = todayMentions.slice(0,10)
+// var weekMentions = weekMentions.slice(0,10)
+// var monthMentions = monthMentions.slice(0,10)
+// var todayUser = todayUser.slice(0,10)
+// var weekUsers = weekUsers.slice(0,10)
+// var monthUsers = monthUsers.slice(0,10)
+// var weeklySerial = weeklySerial.slice(0,5)
+// var todaysSerial = todaysSerial.slice(0,3)
+// var monthSerial = monthSerial.slice(0,5)
+// var todayTop = todayTop.slice(0,5)
+// var weekTop = weekTop.slice(0,5)
+// var monthTop = monthTop.slice(0,5)
+var parseTime = d3.timeParse("%Y-%m-%d %I");
+
+var maxDay = d3.max(dailyClock, function(d){return d.count})
+// var maxWeek = d3.max(weeklyClock, function(d){return d.count})
+// var maxMonth = d3.max(monthlyClock, function(d){return d.count})
+var greatest = d3.max([maxDay])
+
+// todayURLs.forEach(element => element["time"]="day");
+// weekURLs.forEach(element => element["time"]="week");
+// monthURLs.forEach(element => element["time"]="month");
+// todayTop.forEach(element => element["time"]="day");
+// weekTop.forEach(element => element["time"]="week");
+// monthTop.forEach(element => element["time"]="month");
+// todaysSerial.forEach(element => element["time"]="day");
+// weeklySerial.forEach(element => element["time"]="week");
+// monthSerial.forEach(element => element["time"]="month");
+dailyClock.forEach(element => element["time"]="day");
+// weeklyClock.forEach(element => element["time"]="week");
+// monthlyClock.forEach(element => element["time"]="month");
+dailyClock.forEach(element => element["date"]= parseTime(element['dailyClock']))
+// weeklyClock.forEach(element => element["date"]= parseTime(element['weeklyClock']));
+// monthlyClock.forEach(element => element["date"]= parseTime(element['monthlyClock']));
+dailyClock.sort(function(a, b){
+    return a["date"]-b["date"]});
+// weeklyClock.sort(function(a, b){
+//     return a["date"]-b["date"]});
+// monthlyClock.sort(function(a, b){
+// 		 return a["date"]-b["date"]});
+
+// todayHT.forEach(hashtagCreate)
+// weekHT.forEach(hashtagCreate)
+// monthHT.forEach(hashtagCreate)
+// todayURLs.forEach(linkCounts)
+// weekURLs.forEach(linkCounts)
+// monthURLs.forEach(linkCounts)
+// todayMentions.forEach(mentions)
+// weekMentions.forEach(mentions)
+// monthMentions.forEach(mentions)
+// todayUser.forEach(activeUser)
+// weekUsers.forEach(activeUser)
+// monthUsers.forEach(activeUser)
+// todaysSerial.forEach(twitterSerial)
+// weeklySerial.forEach(twitterSerial)
+// monthSerial.forEach(twitterSerial)
+// todayTop.forEach(topTweets)
+// weekTop.forEach(topTweets)
+// monthTop.forEach(topTweets)
+chartCreate(dailyClock)
+// chartCreate(weeklyClock)
+// chartCreate(monthlyClock)
+
+};
+
+</script>
+
+</body>
+</html>

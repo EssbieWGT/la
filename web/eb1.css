@@ -1,0 +1,40 @@
+.containerwgt {
+  position: relative;
+  margin-top: 5%;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.heading{
+  text-align: center;
+}
+
+.card {
+  page-break-inside: avoid;
+}
+
+@media print {
+
+  div {
+    orphans: 4;
+    widows: 4;
+  }
+
+  .contents{
+    page-break-inside: avoid;
+  }
+
+  @page {
+    /*anytime you mess with the size, it srews everything up.*/
+    size: A4; /* DIN A4 standard, Europe */
+    /*margin: 10mm 0 10mm 0;*/
+
+  }
+.pagebreak {
+    clear: both;
+    page-break-after: always;
+}
+div {font-family:calibri, times, serif;
+     font-size: 24px !important;}
+
+}

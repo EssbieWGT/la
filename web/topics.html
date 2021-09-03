@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <title>Twitter Topics</title>
+        <link rel="stylesheet" type="text/css" href="eb0.css">
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <script>
+
+        d3.queue()
+            .defer(d3.csv, 'topics.csv')
+            .await(analyze);
+
+            function analyze(error, jData) {
+              if(error) { console.log(error); }
+
+              //set cateogry heads
+              categoryData = []
+              const categories = [...new Set(jData.map(article => "c"+article['topic']))]
+
+              sortedData = jData.sort(function(a,b) {
+                return new Date(b.firstSeen).toLocaleString() - new Date(a.firstSeen).toLocaleString();
+              });
+
+              categories.forEach(function(data,index){
+
+                d3.select('#current')
+                  .data(data)
+                  .append("div")
+                  .attr("class","innerGrid")
+                  .attr("id", data.replace(/\s+/g, ""))
+                  .html("<h2>" + data + "</h2>");
+                });
+
+                sortedData.forEach(function(data){
+                  selector = "#c"+data.topic.replace(/\s+/g, "")
+
+                //   d3.selectAll(selector)
+                //     .append("div")
+                //     .append("ul")
+                //     .append("li")
+                //     .html('<small class="text_muted"><a href="https://twitter.com/' + data.handle + '"target="_blank">' + data.displayName + '</a> | ' + new Date(data.date).toLocaleString() + '| <a href="' + data.url + '"target="_blank">' + 'Link  </a></small></br><p style="font-weight:normal;">' + data.content + '</p><small class="text_muted">' + "Liked: " + data.likeCount +" | Quoted: " + data.quoteCount + ' | Replies: ' + data.replyCount + ' | ReTweets: ' + data.retweetCount + "<br>" + data.type + " | " + data.class + '</small>' );
+                //     d3.select(this)
+                //     .append("td")
+                //     .style("max-width","150")
+                //     .html('<img src="'+ data.photos + '" width="150"><td>');
+                // })
+
+                d3.selectAll(selector)
+                .append("table")
+                .style("width","80%")
+                .style("text-align","left")
+                .append("tr")
+                .style("border-bottom","1px solid #ddd")
+                .each(function(d){
+                  d3.select(this)
+                  // .append("tr")
+                  .append("td")
+                  .style('line-height',"1")
+                  // .style("width","800")
+                  .style("padding","15px")
+                  .html('<td><img src="'+ data.photos + '" width="80%"><br><small class="text_muted"><a href="https://twitter.com/' + data.handle + '"target="_blank">' + data.displayName + '</a> | ' + new Date(data.date).toLocaleString() + '| <a href="' + data.url + '"target="_blank">' + 'Link  </a></small></br><p style="font-weight:normal;">' + data.content + '</p><small class="text_muted">' + "Liked: " + data.likeCount +" | Quoted: " + data.quoteCount + ' | Replies: ' + data.replyCount + ' | ReTweets: ' + data.retweetCount + '</small><br><hr>' );
+                  // d3.select(this)
+                  // .append("td")
+                  // .style("width","20%")
+                  // .html('<img src="'+ data.photos + '" width="150"><td>');
+                  })
+            })
+          }
+        </script>
+    </head>
+    <body>
+        <!-- <button onclick="getTime()">Click to get time</button> -->
+        <div class="containerwgt" style="width:90%">
+        <div class="grid-container" id="current"></div>
+    </body>
+<html>

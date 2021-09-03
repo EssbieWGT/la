@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="format-detection" contnet="telephone=no">
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Daily Influencer Email</title>
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="eb.css">
+  <script src="https://d3js.org/d3.v4.js"></script>
+  </head>
+
+<style>
+ .ExternalClass * {line-height: 100%}
+
+ @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+ body {
+  -webkit-text-size-adjust:100%;
+  -ms-text-size-adjust:100%;
+ }
+}
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+ body {
+  -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;
+ }
+}
+@media only screen and (-webkit-min-device-pixel-ratio : 1.5),
+only screen and (min-device-pixel-ratio : 1.5) {
+ body {
+  -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;
+ }
+}
+</style>
+
+<body>
+
+<!-- Opening DIV for container -->
+<div class="containerwgt" style="width:90%">
+<!-- <h2 id="packageName"></h2> -->
+<h2> LeadingAge <br> Daily Influencer Analysis: Social Media </h2>
+<div id='current'></div><br>
+
+<h3>Summary:</h3>
+
+<h3> Most Shared Content: </h3>
+<div id="topArticles"></div>
+<hr>
+
+<h3> Selected Top Tweets: </h3>
+<div id="selTop"></div>
+<hr>
+
+<h3> Most Engaged With Tweets: </h3>
+<div id="topTweets"></div>
+<hr>
+<h3>Most Used Hashtags:</h3>
+<div id="topHash"></div>
+<hr>
+
+<h3> Most Mentioned Users: </h3>
+<div id="topUsers"></div>
+<hr>
+
+<h3> Events Promoted: </h3>
+<div id="eventsPro"></div>
+
+<script>
+
+  const getHostname = (url) => {
+    // use URL constructor and return hostname
+    return new URL(url).hostname;
+  }
+
+// load the data
+  d3.queue()
+    .defer(d3.json, 'Events.json')
+    .defer(d3.json, 'todayHashtagCounts.json')
+    .defer(d3.json, 'todayTop.json')
+    .defer(d3.json, 'todayTopStories.json')
+    .defer(d3.json, 'todayUserMentionsCounts.json')
+    .await(analyze);
+
+    function analyze(error, eventPromo, hashtags, topTweets, topURLs, topMentions) {
+      if(error) { console.log(error); }
+
+      // // Drop the first entry on the clock log which is, for some reason, just blank.
+      // clock.shift()
+      //
+      // function getMinY() {
+      //   return clock.reduce((min, p) => p.dailyClock < min ? p.dailyClock : min, clock[0].dailyClock);
+      // }
+      // function getMaxY() {
+      //   return clock.reduce((max, p) => p.dailyClock > max ? p.dailyClock : max, clock[0].dailyClock);
+      // }
+      //
+      // minDate = new Date(getMinY()).toLocaleString()
+      // maxDate = new Date(getMaxY()).toLocaleString()
+
+      timeStart = new Date(topTweets[0].pullStart).toLocaleString()
+      timeEnd = new Date(topTweets[0].pullEnd).toLocaleString()
+
+      //insert time range
+      document.getElementById("current").innerHTML = "From: " + timeStart + " To: " + timeEnd +" ET";
+
+// Top Hashtags
+h2 = hashtags.slice(0,19)
+
+h2.forEach(function(data){
+
+  hashlink = "https://twitter.com/hashtag/" + data.todayHashtag
+
+  d3.selectAll("#topHash")
+    .append("li")
+    .style("text-indent","15px")
+    .html("<a href='"+hashlink+"'target='_blank'>#"+data.todayHashtag + " (n= " + data.count + ")</a>")
+
+})
+
+// Top Artitcles
+// topURLs = topURLs.slice(0,5)
+
+topURLs.forEach(function(data){
+
+  if (data.date === null){
+    date = "No Date"
+  }else {
+    date = new Date(data.date).toLocaleString()
+  }
+
+  domain = data.domain ?? getHostname(data.s_url)
+
+  d3.selectAll("#topArticles")
+    .append("table")
+    .style("width","50%")
+    .style("text-align","left")
+    .append("tr")
+    .style("border-bottom","1px solid #ddd")
+    .each(function(d){
+      d3.select(this)
+      // .append("tr")
+      .append("td")
+      .style('line-height',"1")
+      // .style("width","800")
+      .style("padding","15px")
+      .html('<small class="text_muted">' + domain + ' | ' + date + '</small></br><h4 style="line-height:1;"><a href="' +data.todayURLs + '"target="_blank">' + data.title + '</a></h4><p style="font-weight:normal;">' + data.description + '</p><small class="text_muted"> Retweets: ' + data.urlRe + ' | Shared: ' + data.count +" times</small>");
+      d3.select(this)
+      .append("td")
+      .style("max-width","150")
+      .html('<img src="'+ data.photo + '" width="150"><td>');
+    })
+
+})
+
+var mentions = topMentions.filter(function (el){
+  return el.todayUserMentions != ""
+})
+
+mentions = mentions.slice(0,19)
+
+// Most Mentioned User
+mentions.forEach(function(data){
+
+  cleanName = data.todayUserMentions.replace(/[^\w\s]|_/g, "")
+  username = "https://twitter.com/"+data.todayUserMentions
+
+  d3.selectAll("#topUsers")
+    .append("li")
+    .style("text-indent","15px")
+    .html("<a href='"+username+"'target='_blank'> @"+ cleanName + " (n= " + data.count + ")</a>")
+
+})
+
+//selected top tweets
+
+// selectedTop.forEach(function(data){
+//
+//   d3.selectAll("#selTop")
+//   .append("table")
+//   .style("width","50%")
+//   .style("text-align","left")
+//   .append("tr")
+//   .style("border-bottom","1px solid #ddd")
+//   .each(function(d){
+//     // d3.select(this)
+//     // .append("td")
+//     // .style("max-width","150")
+//     // .html('<img src="'+ data.profileImage + '" width="75"><td>');
+//     d3.select(this)
+//     // .append("tr")
+//     .append("td")
+//     .style('line-height',"1")
+//     // .style("width","800")
+//     .style("padding","15px")
+//     .html('<small class="text_muted"><a href="https://twitter.com/' + data.handle + '"target="_blank">' + data.displayName + '</a> | ' + new Date(data.date).toLocaleString() + '| <a href="' + data.url + '"target="_blank">' + 'Link  </a></small></br><p style="font-weight:normal;">' + data.content + '</p><small class="text_muted">' + "Liked: " + data.likeCount +" | Quoted: " + data.quoteCount + ' | Replies: ' + data.replyCount + ' | ReTweets: ' + data.retweetCount + "<br>" + data.type + " | " + data.class + '</small>' );
+//     d3.select(this)
+//     .append("td")
+//     .style("max-width","150")
+//     .html('<img src="'+ data.photos + '" width="150"><td>');
+//   })
+// })
+
+//top tweets
+//Need to go back and figure out how to access the malformed data under user
+
+topTweets.forEach(function(data){
+
+  d3.selectAll("#topTweets")
+  .append("table")
+  .style("width","50%")
+  .style("text-align","left")
+  .append("tr")
+  .style("border-bottom","1px solid #ddd")
+  .each(function(d){
+    // d3.select(this)
+    // .append("td")
+    // .style("max-width","150")
+    // .html('<img src="'+ data.profileImage + '" width="75"><td>');
+    d3.select(this)
+    // .append("tr")
+    .append("td")
+    .style('line-height',"1")
+    // .style("width","800")
+    .style("padding","15px")
+    .html('<small class="text_muted"><a href="https://twitter.com/' + data.handle + '"target="_blank">' + data.displayName + '</a> | ' + new Date(data.date).toLocaleString() + '| <a href="' + data.url + '"target="_blank">' + 'Link  </a></small></br><p style="font-weight:normal;">' + data.content + '</p><small class="text_muted">' + "Liked: " + data.likeCount +" | Quoted: " + data.quoteCount + ' | Replies: ' + data.replyCount + ' | ReTweets: ' + data.retweetCount + '<br></small>' );
+    d3.select(this)
+    .append("td")
+    .style("max-width","150")
+    .html('<img src="'+ data.photos + '" width="150"><td>');
+  })
+  })
+
+  //event promos
+  eventPromo.forEach(function(data){
+
+    d3.selectAll("#eventsPro")
+    .append("table")
+    .style("width","50%")
+    .style("text-align","left")
+    .append("tr")
+    .style("border-bottom","1px solid #ddd")
+    .each(function(d){
+      // d3.select(this)
+      // .append("td")
+      // .style("max-width","150")
+      // .html('<img src="'+ data.profileImage + '" width="75"><td>');
+      d3.select(this)
+      // .append("tr")
+      .append("td")
+      .style('line-height',"1")
+      // .style("width","800")
+      .style("padding","15px")
+      .html('<small class="text_muted"><a href="https://twitter.com/' + data.handle + '"target="_blank">' + data.displayName + '</a> | ' + new Date(data.date).toLocaleString() + '| <a href="' + data.url + '"target="_blank">' + 'Link  </a></small></br><p style="font-weight:normal;">' + data.content + '</p><small class="text_muted">' + "Liked: " + data.likeCount +" | Quoted: " + data.quoteCount + ' | Replies: ' + data.replyCount + ' | ReTweets: ' + data.retweetCount + "<br>" + data.type + " | " + data.class + '</small>' );
+      d3.select(this)
+      .append("td")
+      .style("max-width","150")
+      .html('<img src="'+ data.photos + '" width="150"><td>');
+})
+
+
+
+})
+
+}
+</script>
+</body>
